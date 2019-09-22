@@ -1,7 +1,8 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import heapq
 import sys
+from string import ascii_uppercase
 
 from GraphInterface import GraphInterface
 
@@ -33,17 +34,17 @@ class AStarAlgorithm(object):
         """
         return len(set(path)) == self.graph.problem_size()
 
-    def run(self, max_traversed) -> Optional[List[str]]:
+    def run(self, max_traversed) -> Tuple[int, Optional[List[str]]]:
         """ Runs the A* search
 
         Args:
             max_traversed: The number of nodes to traverse before stopping.
 
         Returns:
-            If the algorithm successfully completes, an order list of node names will
-            be returned. If the max_traversed was reached, None.
+            Returns a tuple containing the number of nodes expanded and the solution
+            path. If the algorithm successfully completes, an order list of node names
+            will be returned. If the max_traversed was reached, None.
         """
-
         # Get Node
         while self.nodes_traversed < max_traversed:
             try:
@@ -55,7 +56,7 @@ class AStarAlgorithm(object):
 
             # Check node is at goal state.
             if self.is_at_goal_state(path):
-                return path
+                return (self.nodes_traversed, self.to_letters(path + [0]))
             else:
                 self.nodes_traversed += 1
 
@@ -69,8 +70,19 @@ class AStarAlgorithm(object):
                 heapq.heappush(self.path_queue, (value, p))
 
         print("[WARNING] - Traversal limit reached.")
-        return None
+        return (self.nodes_traversed, None)
 
+    def to_letters(self, path):
+        """ Converts a path in index form to alphabetical form.
+
+        Args:
+            path: An ordered list of indices.
+
+        Returns:
+            A list, with same ordering, where indices have been replaced by the
+            corresponding letter.
+        """
+        return [ascii_uppercase[i] for i in path]
 
     def heuristic(self, x: List[int]) -> float:
         """ Returns the heuristic value of a path.
@@ -88,6 +100,7 @@ if __name__ == "__main__":
     g = GraphInterface.fromFile(f"problems/{n}/instance_1.txt")
     a = AStarAlgorithm(g)
     start = datetime.now()
-    a.run(max_traversed=10000000)
+    result = a.run(max_traversed=10000000)
     end = datetime.now()
+    print(f"Solution: {result}.")
     print(f"Took, {(end-start).total_seconds()} seconds.")
