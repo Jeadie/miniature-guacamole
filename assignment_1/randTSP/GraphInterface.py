@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List
+from typing import Dict, List
 from scipy.spatial import distance
 
 class GraphInterface(object):
@@ -13,6 +13,18 @@ class GraphInterface(object):
 
         self.n = cities.shape[0]
         self.dist_matrix = distance.cdist(self.cities, self.cities, "euclidean")
+        self.closest_cities = self.construct_closest_cities()
+        # print(self.closest_cities)
+
+    def construct_closest_cities(self) -> Dict[int, List[int]]:
+        """ Constructs a mapping between cities and an ordered list of closest city
+            indices.
+
+        Returns:
+            A mapping from city indices (int) to an ordered list of city indices
+            sorted by increasing order of euclidean distance.
+        """
+        return dict([(i, list(np.argsort(self.dist_matrix[i,:]))[1:]) for i in range(self.n)])
 
     def reset(self):
         return None
@@ -25,6 +37,22 @@ class GraphInterface(object):
         for i in range(len(path)-1):
             cost += self.dist_matrix[path[i], path[i+1]]
         return cost
+
+    def get_closest_distance(self, nodes: List[int]) -> List[float]:
+        """ For each node, finds the distance of the closest city of which are also in
+            the list of nodes.
+
+        Args:
+            nodes: A list of nodes to be considered.
+
+        Returns:
+            A list, in the respective order, of the distance to the closest city in
+            the list of nodes for each node in the list.
+        """
+        filtered_cities = list(map(lambda x: [c for c in self.closest_cities[x] if c in nodes], nodes))
+        # print("FILTERED", filtered_cities)
+
+        return [self.dist_matrix[x[0], i] if len(x) > 0 else -1 for (x, i) in zip(filtered_cities, range(self.n))]
 
     def get_possible_nodes(self, path: List[int]) -> List[int]:
         """ Gets the possible nodes that have not been traversed by the path.

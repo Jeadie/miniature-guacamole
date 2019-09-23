@@ -82,7 +82,8 @@ class AStarAlgorithm(object):
             A list, with same ordering, where indices have been replaced by the
             corresponding letter.
         """
-        return [ascii_uppercase[i] for i in path]
+        return path
+        # return [ascii_uppercase[i] for i in path]
 
     def heuristic(self, x: List[int]) -> float:
         """ Returns the heuristic value of a path.
@@ -93,11 +94,18 @@ class AStarAlgorithm(object):
         Returns:
             A heuristic of how close this path is to the goal state.
         """
-        return 0
+        distances = self.graph.get_closest_distance(self.graph.get_possible_nodes(x))
+        # print(distances)
+        if not(distances) or distances[0] < 0:
+            return 0
+        else:
+            return sum(distances)
+
+        # return 0
 
 if __name__ == "__main__":
-    n = int(sys.argv[1])
-    g = GraphInterface.fromFile(f"problems/{n}/instance_1.txt")
+    # n = int(sys.argv[1])
+    g = GraphInterface.fromFile(f"problems/problem36")
     a = AStarAlgorithm(g)
     start = datetime.now()
     result = a.run(max_traversed=10000000)
