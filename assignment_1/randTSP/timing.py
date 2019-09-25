@@ -14,18 +14,19 @@ def run_problem_size(n):
         g = GraphInterface.fromFile(f"problems/{n}/{f}")
         a = AStarAlgorithm(g)
         start = datetime.now()
-        count, paths = a.run(max_traversed=10000000)
+        count, paths, cost = a.run(max_traversed=10000000)
         end = datetime.now()
         times.append((end - start).total_seconds())
-        # print(f"Complete: {n}, {count}, {(end - start).total_seconds()}.")
+        print(f"Complete: {n}, {count}, {(end - start).total_seconds()}.")
         nodes.append(count)
     return (sum(nodes)/float(n), sum(times)/float(n))
 
 def main():
     n = int(sys.argv[1])
     results = []
-    # a, b = run_problem_size(n)
-
+    a, b = run_problem_size(n)
+    print( a, b)
+    return 0
     for i in range(1, n+1):
         a,b = run_problem_size(i)
 

@@ -32,19 +32,20 @@ class AStarAlgorithm(object):
         Returns:
             True, if this achieves the end goal state, False otherwise.
         """
-        return len(set(path)) == self.graph.problem_size()
+        return len(path) > self.graph.problem_size()
 
-    def run(self, max_traversed) -> Tuple[int, Optional[List[str]]]:
+    def run(self, max_traversed=10000000) -> Tuple[int, Optional[List[str]], float]:
         """ Runs the A* search
 
         Args:
             max_traversed: The number of nodes to traverse before stopping.
 
         Returns:
-            Returns a tuple containing the number of nodes expanded and the solution
-            path. If the algorithm successfully completes, an order list of node names
+            Returns a tuple containing the number of nodes expanded, the solution
+            path and the overall cost of the solution. If the algorithm successfully completes, an order list of node names
             will be returned. If the max_traversed was reached, None.
         """
+
         # Get Node
         while self.nodes_traversed < max_traversed:
             try:
@@ -54,20 +55,28 @@ class AStarAlgorithm(object):
                 print("[ERROR] - Ran out of nodes to traverse.")
                 raise
 
+            if len(path) == self.graph.n:
+                successor_node = path + [0]
+                value = self.graph.backward_cost(successor_node)
+                # print(f"HIT: {(value, successor_node)}")
+                heapq.heappush(self.path_queue, (value, successor_node))
+
+            elif len(path) < self.graph.n:
+                # Get all possible successor paths
+                successor_nodes = self.graph.get_possible_nodes(path)
+                successor_paths = [path+[node] for node in successor_nodes]
+
+                # Add to priority queue with respect to current_cost + heuristic
+                for p in successor_paths:
+                    value = self.graph.backward_cost(p) + self.heuristic(p)
+                    heapq.heappush(self.path_queue, (value, p))
+
             # Check node is at goal state.
-            if self.is_at_goal_state(path):
-                return (self.nodes_traversed, self.to_letters(path + [0]))
+            if self.is_at_goal_state(path): # and score <= new_score:
+                return (self.nodes_traversed, self.to_letters(path + [0]),
+                        self.graph.backward_cost(path + [0]))
             else:
                 self.nodes_traversed += 1
-
-            # Get all possible successor paths
-            successor_nodes = self.graph.get_possible_nodes(path)
-            successor_paths = [path+[node] for node in successor_nodes]
-
-            # Add to priority queue with respect to current_cost + heuristic
-            for p in successor_paths:
-                value = self.graph.backward_cost(p) + self.heuristic(p)
-                heapq.heappush(self.path_queue, (value, p))
 
         print("[WARNING] - Traversal limit reached.")
         return (self.nodes_traversed, None)
@@ -94,14 +103,12 @@ class AStarAlgorithm(object):
         Returns:
             A heuristic of how close this path is to the goal state.
         """
-        distances = self.graph.get_closest_distance(self.graph.get_possible_nodes(x))
-        # print(distances)
+        remaining = self.graph.get_possible_nodes(x)
+        distances = self.graph.get_closest_distance([x[-1]] + remaining, remaining + [0])
         if not(distances) or distances[0] < 0:
             return 0
         else:
             return sum(distances)
-
-        # return 0
 
 if __name__ == "__main__":
     # n = int(sys.argv[1])
