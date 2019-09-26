@@ -22,17 +22,17 @@ class BackTrackingTemplate(object):
             A (solution steps) tuple where the solution is a complete Sudoku grid and
             steps is how many partial/complete assignments it had to take,
         """
-        self.nodes_traversed = 0
+        print(f"Running model with: forward={self.forward}, heuristics={self.heuristic}")
+        self.grid.nodes_assigned = 0
         try:
-            return (self.run_recursive(), self.nodes_traversed)
+            return (self.run_recursive(), self.grid.nodes_assigned)
         except AttributeError as e:
-            print(e)
             print("Search reached over 10,000 nodes.")
-            return (None, self.nodes_traversed)
+            return (None, self.grid.nodes_assigned)
 
 
     def run_recursive(self):
-        if self.nodes_traversed > 10000:
+        if self.grid.nodes_assigned> 10000:
             raise AttributeError()
 
         # Check recursion has worked.
@@ -41,16 +41,13 @@ class BackTrackingTemplate(object):
 
         # TODO: Add end recurse checking and solution is done checking
         # Get node to traverse,
-        self.nodes_traversed += 1
         node = self.select_next_variable(mrv=self.heuristic, mcv=self.heuristic)
 
 
         values = self.grid.get_values_for_node(node)
         if len(values) == 0:
-            print(self.grid.get_single_solution())
             return None
-        else:
-            print(values)
+
         # Perform least constraining ordering.
         # if self.heuristic:
         #     values = self.least_constraining_ordering(values, node)
@@ -58,43 +55,67 @@ class BackTrackingTemplate(object):
         # try each value possible
         for v in values:
             # Set value
-            # self.grid.set_value(node, v)
             self.grid.set_assignment(node, v)
 
             # If forward check is used check forward, and if no solution is possible,
             # don't recurse forward.
-            # if self.forward and self.forward_check(arc_consistency=self.heuristic):
-            #     continue
+            if self.forward:
+                constrained_nodes = self.grid.add_variable_constraint(node, v)
+                if self.forward_check(arc_consistency=self.heuristic):
+                    self.grid.remove_variable_constraint(constrained_nodes, v)
+                    self.grid.remove_assignment(node)
+                    continue
 
             # and try subproblem (i.e. recurse down search tree).
             result = self.run_recursive()
 
             # If that path has solution, return
             if result is not None:
-                print("RESULTSULTUSLTUSLTUSTLUSTUL")
                 return result
 
+            # remove forward check constrains on variables now that this assignment does not work.
+            if self.forward:
+                self.grid.remove_variable_constraint(constrained_nodes, v)
+
             self.grid.remove_assignment(node)
-            # self.grid.remove_value(node, v)
 
         # If all subtrees cannot be solved, backtrack
         #TODO change back to values for future forward checking
         # print(f"Removing Values {values} setting to node: {node}.")
 
-        self.grid.set_value(node, values)
-        print(node, values)
-        print(self.grid.get_single_solution())
+        if self.forward:
+            self.grid.set_value(node, values)
         return None
 
 
     def forward_check(self, arc_consistency):
         """ Checks if, given the current sudoku placements, it is impossible to attain a solution.
 
-        :param arc_consistency:
+        Args:
+            arc_consistency: Whether arc consistency should be checked.
         Returns:
             True if a solution is not possible, false otherwise (solution is possible or indeterminable)
         """
-        return False
+
+        free = self.grid.get_free_tiles()
+        for point in free:
+            if self.grid.value_data[point[0], point[1]].sum() == 0:
+                return True
+
+        if arc_consistency:
+            return not self.check_arc_consistency(free)
+        else:
+            return False
+
+    def check_arc_consistency(self, points):
+        """ Checks whether there is arc consistency in the remaining variables to be assigned.
+
+        Args:
+            points: A list of (x,y) points without an assignment.
+        Return:
+            True if there is arc consistency (and thus a possible solution), False otherwise.
+        """
+        return True
 
     def least_constraining_ordering(self, values, node):
         """ Orders the values to search in increasing order of constraining value.
@@ -117,10 +138,4 @@ class BackTrackingTemplate(object):
             The variable in the grid which should be traversed next.
         """
         return self.grid.get_free_tiles()[0]
-        # return random.choice(self.grid.get_free_tiles())
 
-
-if __name__ == '__main__':
-    s = SudokuGrid("problems/10/3.sd")
-    a = BackTrackingTemplate(s, False, False)
-    print(a.run())

@@ -73,8 +73,8 @@ class AStarAlgorithm(object):
 
             # Check node is at goal state.
             if self.is_at_goal_state(path): # and score <= new_score:
-                return (self.nodes_traversed, self.to_letters(path + [0]),
-                        self.graph.backward_cost(path + [0]))
+                return (self.nodes_traversed, self.to_letters(path),
+                        self.graph.backward_cost(path))
             else:
                 self.nodes_traversed += 1
 
