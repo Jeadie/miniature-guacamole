@@ -17,6 +17,7 @@ class SudokuGrid(object):
             self.value_data = (np.arange(9) == self.value_data[..., None] - 1).astype(int)
             self.value_data[(self.value_data == 0).all(axis=-1), :] =  np.ones((9,9,9))[(self.value_data == 0).all(axis=-1), :]
             self.nodes_assigned = 0
+            self.load_initial_variable_constraints()
 
     def set_assignment(self, node, value):
         """Sets the value of a node to """
@@ -80,6 +81,12 @@ class SudokuGrid(object):
 
 
     ## FORWARD CHECKING FUNCs
+    def load_initial_variable_constraints(self):
+        free_x, free_y = np.where(self.assignments_data > -1)
+        for x, y in zip(free_x, free_y):
+            self.add_variable_constraint((x,y), self.assignments_data[x,y])
+
+
     def remove_variable_constraint(self, nodes, value):
         """ Removes the forward checking variable constraint on unassigned nodes.
 

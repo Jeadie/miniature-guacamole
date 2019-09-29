@@ -1,3 +1,5 @@
+import sys
+
 from typing import Callable, List, Tuple
 from data_loader import SudokuGrid
 import random
@@ -137,5 +139,39 @@ class BackTrackingTemplate(object):
         Returns:
             The variable in the grid which should be traversed next.
         """
-        return self.grid.get_free_tiles()[0]
+        if mrv:
+            # get free variables
+            free_x, free_y = np.where(self.grid.assignments_data == -1)
+
+            # get number of free values
+            values_remaining = np.sum(self.grid.value_data[free_x, free_y], axis=-1)
+
+            # Get minimum
+            minimums = np.where(values_remaining == np.amin(values_remaining))[0]
+
+
+            # tiebreak with most constraining variable
+            if mcv:
+                # TODO: Figure why this is broken.
+                # Most constraining is variable with least number of assigned variables in its row, column and square.
+                free_points = [(free_x[i], free_y[i]) for i in range(len(free_x))]
+
+                min_point = None
+                min_value = sys.maxint
+                for m in minimums:
+                    x, y = free_x[m], free_y[m]
+                    affected = len(list(filter(lambda i: ((i[0] // 3 == x // 3) and (i[-1] // 3 == y // 3)) or (i[-1] == y) or (i[0] == x), free_points)))
+                    if affected > min_value:
+                        min_value = affected
+                        min_point = (x, y)
+
+                return min_point
+
+            # Else just return first element
+            else:
+                return (free_x[minimums[0]], free_y[minimums[0]])
+
+        # Default, get tiles in order.
+        else:
+            return self.grid.get_free_tiles()[0]
 
