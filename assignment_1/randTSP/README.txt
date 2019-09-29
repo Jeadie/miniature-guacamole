@@ -14,7 +14,7 @@ There are three ways to run TSPs:
 1. Running a single file, `python timing.py <FILENAME>`
 2. Running all files for a problem size: `python timing.py <PROBLEM_SIZE>`
 3. Running all files for problems less than or equal to a size: `python timing.py <PROBLEM_SIZE> all`
-
+NOTE: For the second two usages to work, the problems folder must be located within this. i.e. 'randTSP/problems/'.
 
 ## Example usage (Programmatically):
 

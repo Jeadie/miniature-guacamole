@@ -22,3 +22,5 @@ There are four ways to run TSPs:
     3. Runs all Sudoku files from 1->n for all three models: `python testing.py compare n`
 
     4. Run a single Sudoku file against all three models. `python testing.py compare_file <FILENAME>`
+  NOTE: For the second two usages to work, the problems folder must be located within this. i.e. 'sudoku/problems/'.
+

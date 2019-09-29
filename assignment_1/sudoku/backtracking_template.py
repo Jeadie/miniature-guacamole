@@ -24,12 +24,11 @@ class BackTrackingTemplate(object):
             A (solution steps) tuple where the solution is a complete Sudoku grid and
             steps is how many partial/complete assignments it had to take,
         """
-        print(f"Running model with: forward={self.forward}, heuristics={self.heuristic}")
         self.grid.nodes_assigned = 0
         try:
             return (self.run_recursive(), self.grid.nodes_assigned)
         except AttributeError as e:
-            print("Search reached over 10,000 nodes.")
+            # print("Search reached over 10,000 nodes.")
             return (None, self.grid.nodes_assigned)
 
 
@@ -51,8 +50,8 @@ class BackTrackingTemplate(object):
             return None
 
         # Perform least constraining ordering.
-        # if self.heuristic:
-        #     values = self.least_constraining_ordering(values, node)
+        if self.heuristic:
+            values = self.least_constraining_ordering(values, node)
 
         # try each value possible
         for v in values:
@@ -128,7 +127,22 @@ class BackTrackingTemplate(object):
         Return:
         The list of values, ordered by their constraining factor.
         """
-        return values
+        x,y = node
+
+        #Get all free variables on the node's row, column and square.
+        free_x, free_y = np.where(self.grid.assignments_data == -1)
+        free_points = [(free_x[i], free_y[i]) for i in range(len(free_x))]
+        affected = list(filter(lambda i: ((i[0] // 3 == x // 3) and (i[-1] // 3 == y // 3)) or (
+                        i[-1] == y) or (i[0] == x), free_points))
+        values_remaining = self.    grid.value_data[list(zip(*affected))]
+
+        # how many squares can put the value in its square
+        values_count = np.sum(values_remaining, axis = 0)[values]
+        values = list(zip(values, values_count))
+
+        # sort values by occurences
+        values.sort(key= lambda x: x[-1])
+        return [v[0] for v in values]
 
     def select_next_variable(self, mrv: bool, mcv: bool) -> Tuple[int]:
         """ Selects the next variable to assign a value to.
@@ -151,20 +165,18 @@ class BackTrackingTemplate(object):
 
 
             # tiebreak with most constraining variable
-            if mcv:
-                # TODO: Figure why this is broken.
+            if len(minimums) > 1 and mcv:
                 # Most constraining is variable with least number of assigned variables in its row, column and square.
                 free_points = [(free_x[i], free_y[i]) for i in range(len(free_x))]
-
                 min_point = None
-                min_value = sys.maxint
+                min_value = 100
                 for m in minimums:
                     x, y = free_x[m], free_y[m]
                     affected = len(list(filter(lambda i: ((i[0] // 3 == x // 3) and (i[-1] // 3 == y // 3)) or (i[-1] == y) or (i[0] == x), free_points)))
-                    if affected > min_value:
+
+                    if affected > 0:
                         min_value = affected
                         min_point = (x, y)
-
                 return min_point
 
             # Else just return first element

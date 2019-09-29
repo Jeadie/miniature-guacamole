@@ -38,7 +38,7 @@ def main():
                 results[i].append(nodes)
 
         for size, nodes in results.items():
-            print(f"n={i} Average nodes traversed={sum(nodes)/len(nodes)}. Nodes: {nodes}.")
+            print(f"n={size} Average nodes traversed={sum(nodes)/len(nodes)}. Nodes: {nodes}.")
 
     elif command == "compare":
         n = int(sys.argv[2])
@@ -57,7 +57,8 @@ def main():
                 resultsC.append(nodesC)
 
             # print results online
-            print(f"n={i} Average nodes A={sum(resultsA) / len(resultsA)}. Average nodes B={sum(resultsB) / len(resultsB)}. Average nodes C={sum(resultsC) / len(resultsC)}")
+            print(f"{i}, {sum(resultsA) / len(resultsA)}, {sum(resultsB) / len(resultsB)}, {sum(resultsC) / len(resultsC)}")
+            # print(f"n={i} Average nodes A={sum(resultsA) / len(resultsA)}. Average nodes B={sum(resultsB) / len(resultsB)}. Average nodes C={sum(resultsC) / len(resultsC)}")
 
     elif command == "compare_file":
         filename = sys.argv[2]
