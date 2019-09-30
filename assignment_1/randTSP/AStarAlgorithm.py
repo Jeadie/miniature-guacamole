@@ -42,25 +42,27 @@ class AStarAlgorithm(object):
 
         Returns:
             Returns a tuple containing the number of nodes expanded, the solution
-            path and the overall cost of the solution. If the algorithm successfully completes, an order list of node names
+            path and the overall cost of the solution. If the algorithm successfully
+            completes, an order list of node names
             will be returned. If the max_traversed was reached, None.
         """
 
-        # Get Node
+
         while self.nodes_traversed < max_traversed:
+            # Get node with lowest score (either backward cost or backward cost and heuristic).
             try:
                 score, path = heapq.heappop(self.path_queue)
-                # print(f"Expanding path with score {score}: {path}.")
             except IndexError:
                 print("[ERROR] - Ran out of nodes to traverse.")
                 raise
 
+            # If all nodes have been traversed, must consider cost of going back to
             if len(path) == self.graph.n:
                 successor_node = path + [0]
                 value = self.graph.backward_cost(successor_node)
-                # print(f"HIT: {(value, successor_node)}")
                 heapq.heappush(self.path_queue, (value, successor_node))
 
+            # else add all possible next nodes based on cost, cost+heuristic
             elif len(path) < self.graph.n:
                 # Get all possible successor paths
                 successor_nodes = self.graph.get_possible_nodes(path)
@@ -91,8 +93,10 @@ class AStarAlgorithm(object):
             A list, with same ordering, where indices have been replaced by the
             corresponding letter.
         """
-        return path
-        # return [ascii_uppercase[i] for i in path]
+        # Poor way to accomodate for when 26 < len(path) < 52
+        values = [x for x in ascii_uppercase]
+        values.extend([f"A{i}" for i in ascii_uppercase])
+        return [values[i] for i in path]
 
     def heuristic(self, x: List[int]) -> float:
         """ Returns the heuristic value of a path.
@@ -105,17 +109,9 @@ class AStarAlgorithm(object):
         """
         remaining = self.graph.get_possible_nodes(x)
         distances = self.graph.get_closest_distance([x[-1]] + remaining, remaining + [0])
+
+        #Check for empty lists
         if not(distances) or distances[0] < 0:
             return 0
         else:
             return sum(distances)
-
-if __name__ == "__main__":
-    # n = int(sys.argv[1])
-    g = GraphInterface.fromFile(f"problems/problem36")
-    a = AStarAlgorithm(g)
-    start = datetime.now()
-    result = a.run(max_traversed=10000000)
-    end = datetime.now()
-    print(f"Solution: {result}.")
-    print(f"Took, {(end-start).total_seconds()} seconds.")
