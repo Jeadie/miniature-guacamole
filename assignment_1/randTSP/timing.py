@@ -1,18 +1,27 @@
 import os
 import sys
 from datetime import datetime
+from typing import List, Tuple
 
 from GraphInterface import GraphInterface
 from AStarAlgorithm import AStarAlgorithm
 
-def int_just(x, size):
+
+def int_just(x:float, size:int) -> str:
+    """ Formats a number to a string of length size.
+    """
     if len(str(x)) > size:
 
         return str(round(x, size-1-len(str(int(x)))))
 
     return str(x).ljust(size)
 
-def run_problem_size(n, print_individual=True):
+def run_problem_size(n: int, print_individual: bool=True)->List[Tuple[float, float]]:
+    """ Runs all problems for a single problem size.
+
+    Args:
+        n: The size of problems to consider
+    """
     times = []
     nodes = []
 

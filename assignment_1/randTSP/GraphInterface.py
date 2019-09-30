@@ -14,7 +14,6 @@ class GraphInterface(object):
         self.n = cities.shape[0]
         self.dist_matrix = distance.cdist(self.cities, self.cities, "euclidean")
         self.closest_cities = self.construct_closest_cities()
-        # print(self.closest_cities)
 
     def construct_closest_cities(self) -> Dict[int, List[int]]:
         """ Constructs a mapping between cities and an ordered list of closest city
@@ -32,7 +31,15 @@ class GraphInterface(object):
     def problem_size(self):
         return self.n
 
-    def backward_cost(self, path: List[int]):
+    def backward_cost(self, path: List[int])->float:
+        """ Calculates the backward cost of a path.
+
+        Args:
+            path: A list of city indices.
+
+        Returns:
+            The cost of traversing the path.
+        """
         cost = 0
         for i in range(len(path)-1):
             cost += self.dist_matrix[path[i], path[i+1]]
@@ -50,9 +57,10 @@ class GraphInterface(object):
             A list, in the respective order, of the distance to the closest city in
             the list of nodes for each node in the list.
         """
+        # Sort closest city (in those allowed in travel_to) for each node
         filtered_cities = list(map(lambda x: [c for c in self.closest_cities[x] if c in travel_to], nodes))
-        # print("FILTERED", filtered_cities)
 
+        # Return distance to closest city for each node.
         return [self.dist_matrix[x[0], i] if len(x) > 0 else -1 for (x, i) in zip(filtered_cities, nodes)]
 
     def get_possible_nodes(self, path: List[int]) -> List[int]:
@@ -69,7 +77,6 @@ class GraphInterface(object):
     def fromFile(filename: str) -> object:
         with open(filename) as f:
             data = f.readlines()
-        n = int(data[0])
         converted = map(lambda x: (int(x[1]), int(x[2])), map(lambda y: y.split(" "), data[1:]))
 
         return GraphInterface(np.array(list(converted)))

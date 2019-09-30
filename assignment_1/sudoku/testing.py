@@ -57,8 +57,7 @@ def main():
                 resultsC.append(nodesC)
 
             # print results online
-            print(f"{i}, {sum(resultsA) / len(resultsA)}, {sum(resultsB) / len(resultsB)}, {sum(resultsC) / len(resultsC)}")
-            # print(f"n={i} Average nodes A={sum(resultsA) / len(resultsA)}. Average nodes B={sum(resultsB) / len(resultsB)}. Average nodes C={sum(resultsC) / len(resultsC)}")
+            print(f"n={i} Average nodes A={sum(resultsA) / len(resultsA)}. Average nodes B={sum(resultsB) / len(resultsB)}. Average nodes C={sum(resultsC) / len(resultsC)}")
 
     elif command == "compare_file":
         filename = sys.argv[2]

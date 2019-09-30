@@ -43,51 +43,69 @@ class SudokuGrid(object):
         self.value_data[x,y,value] = 0
 
 
-    def get_values_for_node(self, node):
+    def get_values_for_node(self, node: Tuple[int,int])-> List[int]:
+        """ For an unassigned square in the sudoku, return all values still possible
+        for assignment.
+
+        Args:
+            node: An x,y co-ordinate of a sudoku square (indexed 0-8)
+
+        Returns:
+            A list of values that could be assigned to the node.
+        """
         x, y = node
-        # bad_possibilities = list(np.where(self.value_data[x,y,:] == 1)[0])
+
+        # Get values remaining from forward checking.
         possibilities = list(np.where(self.value_data[x,y,:] == 1)[0])
 
-        # Get indices with numbers in
+        # Get co-ordinates of squares already assigned.
         used_x, used_y = np.where(self.assignments_data != -1)
         pairs = [(used_x[i], used_y[i]) for i in range(len(used_x))]
 
+        # get square that would constrain the current node.
         square = list(filter(lambda i: ((i[0] // 3 == x // 3) and (i[-1] // 3 == y // 3)), pairs))
         rows  = list(filter(lambda i:  (i[-1] == y), pairs))
         columns = list(filter(lambda i: (i[0] == x), pairs))
-
         pairs_ind = list(zip(*rows+columns+square))
 
         # Get values from remaining positions
         existing = self.assignments_data[pairs_ind]
 
         # remove contradicting values from possibilities
-        # print(f" {node} Bad possibliities: {bad_possibilities}, result: {list(set(possibilities).difference(set(existing)))}.")
         return list(set(possibilities).difference(set(existing)))
 
 
-    def get_single_solution(self):
+    def get_single_solution(self)-> List[List[int]]:
+        """ Convert solution from [0,8] to [1,9] indexing.
+
+        Returns: A sudoku solution with indexing [1,9].
+        """
         return  self.assignments_data  +1
 
-    def get_free_tiles(self):
+    def get_free_tiles(self)-> List[Tuple[int, int]]:
+        """ Returns a list of co-ordinates of squares in the Sudoku without an
+            assignment.
+        """
         free_x, free_y  = np.where(self.assignments_data == -1)
         return [(free_x[i], free_y[i]) for i in range(len(free_x))]
 
 
-    def is_complete(self):
+    def is_complete(self)-> bool:
+        """Returns True if the Sudoku is complete.
+        """
         free_x, free_y = np.where(self.assignments_data == -1)
         return len(free_x) == 0
 
-
-
     ## FORWARD CHECKING FUNCs
     def load_initial_variable_constraints(self):
+        """ Load forward checking from pre-existing variable-value assignments.
+        """
         free_x, free_y = np.where(self.assignments_data > -1)
         for x, y in zip(free_x, free_y):
             self.add_variable_constraint((x,y), self.assignments_data[x,y])
 
 
-    def remove_variable_constraint(self, nodes, value):
+    def remove_variable_constraint(self, nodes: List[tuple[int, int]], value: int):
         """ Removes the forward checking variable constraint on unassigned nodes.
 
         Args:
