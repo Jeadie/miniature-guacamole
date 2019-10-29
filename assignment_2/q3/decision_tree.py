@@ -22,16 +22,8 @@ def construct_decision_tree(dataset: np.array) -> List[Tuple[int, float]]:
         in this node and the corresponding threshold whereby if x[feature] >= threshold
         then the decision tree should traverse to the right node.
     """
-    tree = construct_decision_tree_recurse(dataset)
-    print(tree.value)
-    print(tree.left.value)
-    print(tree.right.value)
+    return construct_decision_tree_recurse(dataset)
 
-    print(tree.left.left.value)
-    print(tree.left.right.value)
-
-    print(tree.right.left.value)
-    print(tree.right.right.value)
 
 
 def construct_decision_tree_recurse(dataset: np.array) -> Node:
@@ -141,6 +133,29 @@ def information_value(p: int, l: int) -> float:
     return -(1.0 * x * math.log2(x)) - (1.0 * (1 - x) * math.log2(1 - x))
 
 
+def test_decision_tree(test_filename, root):
+    dataset = open_data(test_filename)
+    correct = test_decision_tree_recurse(dataset, root)
+    print(f" {correct} Correct out of {dataset.shape[0]}. {(correct*100)/dataset.shape[0]}%.")
+
+def test_decision_tree_recurse(dataset, node) -> int:
+    # Empty branch
+    if dataset.shape[0] == 0:
+        return 0
+
+    # Leaf Node
+    if node.left is None and node.right is None:
+        return sum(dataset[:, -1] == node.value)
+
+    # Decision Node
+    feature, threshold = node.value
+
+    right = dataset[dataset[:, feature] >= threshold]
+    left = dataset[dataset[:, feature] < threshold]
+
+    return test_decision_tree_recurse(left, node.left) + test_decision_tree_recurse(right, node.right)
+
 if __name__ == "__main__":
-    dataset = open_data("horseTest.txt")
-    construct_decision_tree(dataset)
+    dataset = open_data("horseTrain.txt")
+    tree = construct_decision_tree(dataset)
+    test_decision_tree("horseTest.txt", tree)
