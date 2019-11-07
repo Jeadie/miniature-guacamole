@@ -1,8 +1,10 @@
 """
 This is the only file you should change in your submission!
 """
+from enum import Enum
+
 from basicplayer import basic_evaluate, minimax, get_all_next_moves, is_terminal
-from util import memoize, run_search_function
+from util import memoize, run_search_function, INFINITY, NEG_INFINITY
 
 
 # TODO Uncomment and fill in your information here. Think of a creative name that's relatively unique.
@@ -24,7 +26,28 @@ def focused_evaluate(board):
     A return value >= 1000 means that the current player has won;
     a return value <= -1000 means that the current player has lost
     """
-    raise NotImplementedError
+    CHAIN_VALUES = {
+        1: 1,
+        2: 100,
+        3: 400,
+        4: 1000,
+    }
+
+    if board.is_tie():
+        return 0
+
+    if board.is_win():
+        # As with basic_evaluate, winning must mean lost.
+        return -1000
+
+    current_chain = board.chain_cells(board.get_current_player_id())
+    other_chain = board.chain_cells(board.get_other_player_id())
+
+    # Longer chains should correlate with closer wins (value 3 chains more than 2 chains
+    current_score = sum([CHAIN_VALUES[len(current)] for current in current_chain])
+    other_score = sum([CHAIN_VALUES[len(other)] for other in other_chain])
+
+    return current_score - other_score
 
 
 # Create a "player" function that uses the focused_evaluate function
@@ -64,7 +87,97 @@ def alpha_beta_search(board, depth,
        is a function that checks whether to statically evaluate
        a board/node (hence terminating a search branch).
     """
-    raise NotImplementedError
+    # For each possible move, traverse with given alpha/beta from previous recursions.
+    alpha = NEG_INFINITY
+    beta = INFINITY
+    best_val = NEG_INFINITY
+    best_move = -1
+    for move, new_board in get_next_moves_fn(board):
+        val = alpha_beta_min_recurse(new_board, depth - 1, eval_fn, alpha, beta,
+                                     get_next_moves_fn, is_terminal_fn)
+
+        if val > best_val:
+            best_move = move
+            best_val = val
+            alpha = max(val, alpha)
+    return best_move
+
+
+def alpha_beta_max_recurse(board, depth, eval_fn, alpha, beta,
+                           get_next_moves_fn=get_all_next_moves,
+                           is_terminal_fn=is_terminal):
+    """
+
+    Args:
+        board: A Connect4 game board object.
+        depth: The depth to perform alpha_beta_recursively downwards.
+        alpha:
+        beta:
+        eval_fn: An evaluation function for board states.
+        get_next_moves_fn: A function that returns all possible next moves
+        is_terminal_fn: A function that checks if the algorithm should terminate at
+            this depth.
+
+    Returns:
+        The value of the search path.
+    """
+    if is_terminal_fn(depth, board):
+        return eval_fn(board)
+
+    # For each possible move, traverse with given alpha/beta from previous recursions.
+    val = NEG_INFINITY
+    for move, new_board in get_next_moves_fn(board):
+        val = max(val,
+                  alpha_beta_min_recurse(new_board, depth - 1, eval_fn, alpha, beta,
+                                         get_next_moves_fn, is_terminal_fn))
+
+        alpha = max(val, alpha)
+
+        # If Alpha > beta, this node will select some val >= alpha > beta and min player (above in tree) will then
+        # select beta instead of val. Can finish early.
+        if alpha >= beta:
+            return val
+
+    return val
+
+
+def alpha_beta_min_recurse(board, depth, eval_fn, alpha, beta,
+                           get_next_moves_fn=get_all_next_moves,
+                           is_terminal_fn=is_terminal):
+    """
+
+    Args:
+        board: A Connect4 game board object.
+        depth: The depth to perform alpha_beta_recursively downwards.
+        is_max:
+        alpha:
+        beta:
+        eval_fn: An evaluation function for board states.
+        get_next_moves_fn: A function that returns all possible next moves
+        is_terminal_fn: A function that checks if the algorithm should terminate at
+            this depth.
+
+    Returns:
+        The value of the search path.
+    """
+    if is_terminal_fn(depth, board):
+        return eval_fn(board)
+
+    # For each possible move, traverse with given alpha/beta from previous recursions.
+    val = INFINITY
+    for move, new_board in get_next_moves_fn(board):
+        val = min(val,
+                  alpha_beta_max_recurse(new_board, depth - 1, eval_fn, alpha, beta,
+                                         get_next_moves_fn, is_terminal_fn))
+
+        beta = min(val, beta)
+
+        # If Alpha > beta, this node will select val <= beta < alpha and max player (above in tree) will then
+        # select alpha instead of val. Can finish early.
+        if alpha >= beta:
+            return val
+
+    return val
 
 
 # Now you should be able to search twice as deep in the same amount of time.
@@ -76,7 +189,8 @@ def alpha_beta_player(board):
 # This player uses progressive deepening, so it can kick your ass while
 # making efficient use of time:
 def ab_iterative_player(board):
-    return run_search_function(board, search_fn=alpha_beta_search, eval_fn=focused_evaluate, timeout=5)
+    return run_search_function(board, search_fn=alpha_beta_search,
+                               eval_fn=focused_evaluate, timeout=5)
 
 
 # TODO Finally, come up with a better evaluation function than focused-evaluate.
@@ -85,6 +199,7 @@ def ab_iterative_player(board):
 
 def better_evaluate(board):
     raise NotImplementedError
+
 
 # Comment this line after you've fully implemented better_evaluate
 better_evaluate = memoize(basic_evaluate)
@@ -95,6 +210,7 @@ better_evaluate = memoize(basic_evaluate)
 
 # A player that uses alpha-beta and better_evaluate:
 def my_player(board):
-    return run_search_function(board, search_fn=alpha_beta_search, eval_fn=better_evaluate, timeout=5)
+    return run_search_function(board, search_fn=alpha_beta_search,
+                               eval_fn=better_evaluate, timeout=5)
 
 # my_player = lambda board: alpha_beta_search(board, depth=4, eval_fn=better_evaluate)

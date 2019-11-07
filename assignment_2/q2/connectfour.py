@@ -116,7 +116,6 @@ class ConnectFourBoard(object):
         for row in self._board_array:
             if row[column] != 0:
                 return row[column]
-
         return 0
 
     def get_height_of_column(self, column):
