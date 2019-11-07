@@ -1,9 +1,11 @@
 from typing import List, Tuple
-
-import numpy as np
 import math
 
+import numpy as np
+from graphviz import Digraph
+
 from data import open_data
+
 
 FEATURE_NAMES = [
     "K",
@@ -174,8 +176,7 @@ def test_decision_tree(filename: str, root: Node) -> float:
     """
     dataset = open_data(filename)
     correct = test_decision_tree_recurse(dataset, root)
-    print(f" {correct} Correct out of {dataset.shape[0]}. {(correct * 100) /
-                                                           dataset.shape[0]}%.")
+    print(f" {correct} Correct out of {dataset.shape[0]}. {(correct * 100) / dataset.shape[0]}%.")
 
 
 def test_decision_tree_recurse(dataset: np.array, node: Node) -> int:
@@ -209,23 +210,24 @@ def test_decision_tree_recurse(dataset: np.array, node: Node) -> int:
         right, node.right)
 
 
-def print_tree(root: Node) -> None:
+def print_tree(root: Node, f) -> None:
     """ Prints the tree's value edges so to be imported into GraphViz.
 
     Args:
         root: Root node of the tree.
+        file: File object to print to
     """
     if root.left is None and root.right is None:
         return None
 
-    print(f'"{print_node(root)}" -> "{print_node(root.left)}";')
-    print(f'"{print_node(root)}" -> "{print_node(root.right)}";')
+    f.write(f'"{print_node(root)}" -> "{print_node(root.left)}";\n')
+    f.write(f'"{print_node(root)}" -> "{print_node(root.right)}";\n')
 
-    print_tree(root.left)
-    print_tree(root.right)
+    print_tree(root.left, f)
+    print_tree(root.right, f)
 
 
-def print_node(node) -> str:
+def print_node(node: Node) -> str:
     """ Converts node into user-friendly format.
 
     Args:
@@ -240,8 +242,20 @@ def print_node(node) -> str:
     f_index, threshold = node.value
     return f"{FEATURE_NAMES[f_index]} >= {threshold}"
 
+def create_graph_image(node, graph) -> Digraph:
+    if node.left is None and node.right is None:
+        return graph
 
-if __name__ == "__main__":
+    graph.node(str(id(node.left)), print_node(node.left))
+    graph.edge(str(id(node)), str(id(node.left)))
+
+    graph.node(str(id(node.right)), print_node(node.right))
+    graph.edge(str(id(node)), str(id(node.right)))
+
+    graph = create_graph_image(node.left, graph)
+    return create_graph_image(node.right, graph)
+
+def main(create_graphviz=False):
     # train
     print("Loading Dataset.")
     dataset = open_data("horseTrain.txt")
@@ -258,6 +272,15 @@ if __name__ == "__main__":
     print("")
 
     # Print Tree for use in GraphViz.
-    print("Saving tree structure to tree.txt")
-    print_tree(tree)
+    if create_graphviz:
+        print("Saving tree structure to tree.gv.pdf")
+        d = Digraph()
+        d.node(str(id(tree)), print_node(tree))
+        d = create_graph_image(tree, d)
+        d.render("tree.gv")
+
     print("DONE")
+
+
+if __name__ == "__main__":
+    main()
