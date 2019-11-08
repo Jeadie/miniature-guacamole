@@ -93,7 +93,7 @@ def alpha_beta_search(board, depth,
     best_val = NEG_INFINITY
     best_move = -1
     for move, new_board in get_next_moves_fn(board):
-        val = alpha_beta_min_recurse(new_board, depth - 1, eval_fn, alpha, beta,
+        val = -1 * alpha_beta_min_recurse(new_board, depth - 1, eval_fn, alpha, beta,
                                      get_next_moves_fn, is_terminal_fn)
 
         if val > best_val:
@@ -128,7 +128,7 @@ def alpha_beta_max_recurse(board, depth, eval_fn, alpha, beta,
     val = NEG_INFINITY
     for move, new_board in get_next_moves_fn(board):
         val = max(val,
-                  alpha_beta_min_recurse(new_board, depth - 1, eval_fn, alpha, beta,
+                  -1 * alpha_beta_min_recurse(new_board, depth - 1, eval_fn, alpha, beta,
                                          get_next_moves_fn, is_terminal_fn))
 
         alpha = max(val, alpha)
@@ -167,7 +167,7 @@ def alpha_beta_min_recurse(board, depth, eval_fn, alpha, beta,
     val = INFINITY
     for move, new_board in get_next_moves_fn(board):
         val = min(val,
-                  alpha_beta_max_recurse(new_board, depth - 1, eval_fn, alpha, beta,
+                  -1 * alpha_beta_max_recurse(new_board, depth - 1, eval_fn, alpha, beta,
                                          get_next_moves_fn, is_terminal_fn))
 
         beta = min(val, beta)
