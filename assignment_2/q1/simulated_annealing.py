@@ -13,7 +13,7 @@ class SimulatedAnnealing(object):
     """ Class to run an A* search on a graph dataset.
 
     """
-    TEMPERATURE_CONSTANT = 0.1
+    TEMPERATURE_CONSTANT = 50
     STOPPAGE_VALUE = 0.00001
 
     def __init__(self, graph: GraphInterface, temperature=TEMPERATURE_CONSTANT):
@@ -26,7 +26,7 @@ class SimulatedAnnealing(object):
     def reset(self):
         self.state = list(range(self.graph.n))
         random.shuffle(self.state)
-        self.costs = []
+        self.costs = [self.graph.solution_cost(self.state)]
 
     def run(self, max_iterations=100) -> Tuple[List[str], List[float]]:
         """ Runs the A* search
@@ -45,6 +45,9 @@ class SimulatedAnnealing(object):
         for i in range(max_iterations):
             # Generate Moveset
             moves = self.generate_moveset(self.state)
+
+            if len(moves) == 0:
+                return (self.state, self.costs)
 
             # Choose S i randomly from Moveset(S)
             m = random.choice(moves)

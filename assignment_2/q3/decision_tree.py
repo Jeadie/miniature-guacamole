@@ -2,8 +2,6 @@ from typing import List, Tuple
 import math
 
 import numpy as np
-from graphviz import Digraph
-
 from data import open_data
 
 
@@ -273,6 +271,8 @@ def main(create_graphviz=False):
 
     # Print Tree for use in GraphViz.
     if create_graphviz:
+        from graphviz import Digraph
+
         print("Saving tree structure to tree.gv.pdf")
         d = Digraph()
         d.node(str(id(tree)), print_node(tree))
@@ -283,4 +283,4 @@ def main(create_graphviz=False):
 
 
 if __name__ == "__main__":
-    main()
+    main(create_graphviz=False)

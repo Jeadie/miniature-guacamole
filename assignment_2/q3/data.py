@@ -19,6 +19,5 @@ def open_data(filename: str) -> np.array:
         labels =f.readlines()
     labels = np.array([[1 if (l.split(",")[-1] == COLIC_CLASS) else 0 for l in labels]]).T
 
-    print(csv.shape, labels.shape)
     data = np.concatenate([csv, labels], axis=1 )
     return data

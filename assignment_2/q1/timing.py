@@ -36,7 +36,8 @@ def run_problem_size(n: int, print_individual: bool = True) -> List[
         cost = costs[-1]
         end = datetime.now()
         times.append((end - start).total_seconds())
-    return (sum(nodes) / float(n), sum(times) / float(n))
+        nodes.append(cost)
+    return ((sum(times)/ len(times)), (sum(nodes) / len(nodes)))
 
 
 def run_tour_size(data):
@@ -119,8 +120,7 @@ def main():
         a = SimulatedAnnealing(g)
         start = datetime.now()
         paths, costs = a.run(max_iterations=100)
-        for c in costs:
-            print(c)
+
         cost = costs[-1]
         end = datetime.now()
         print(f"File: {sys.argv[1]}.\nTime (s): {(end - start).total_seconds()}. \nCost: {int_just(cost,5)} \nSolution: {paths}.")
@@ -135,16 +135,17 @@ def main():
 
             for t, i in zip(results, range(1, n + 1)):
                 print(
-                    f"Cities: {int_just(i, 3)}Average Nodes Traversed: {int_just(t[0], 6)} Average Time (s): {int_just( t[1], 12)}")
+                    f"Cities: {int_just(i, 3)}Average time: {int_just(t[0], 6)} Average Cost (s): {int_just( t[1], 12)}")
 
         # Run all files for problems of size argv[1]
         else:
             a, b = run_problem_size(n)
             print(
-                f"\nFor {n} cities. \nAverage Nodes Traversed: {a} \nAverage Time (s): {b}.")
+                f"\nFor {n} cities. \nAverage Time: {a} \nAverage Cost: {b}.")
 
 
 if __name__ == '__main__':
-    run_large_problem(50, 9000000)
+    main()
+    # run_large_problem(50, 9000000)
 
     # temperature_schedule_test("./problems", [50])
