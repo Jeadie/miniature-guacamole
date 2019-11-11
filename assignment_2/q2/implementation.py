@@ -94,8 +94,7 @@ def alpha_beta_search(board, depth,
     best_move = -1
     for move, new_board in get_next_moves_fn(board):
         val = -1 * alpha_beta_min_recurse(new_board, depth - 1, eval_fn, alpha, beta,
-                                     get_next_moves_fn, is_terminal_fn)
-
+                                          get_next_moves_fn, is_terminal_fn)
         if val > best_val:
             best_move = move
             best_val = val
@@ -128,8 +127,9 @@ def alpha_beta_max_recurse(board, depth, eval_fn, alpha, beta,
     val = NEG_INFINITY
     for move, new_board in get_next_moves_fn(board):
         val = max(val,
-                  -1 * alpha_beta_min_recurse(new_board, depth - 1, eval_fn, alpha, beta,
-                                         get_next_moves_fn, is_terminal_fn))
+                  -1 * alpha_beta_min_recurse(new_board, depth - 1, eval_fn, alpha,
+                                              beta,
+                                              get_next_moves_fn, is_terminal_fn))
 
         alpha = max(val, alpha)
 
@@ -167,8 +167,9 @@ def alpha_beta_min_recurse(board, depth, eval_fn, alpha, beta,
     val = INFINITY
     for move, new_board in get_next_moves_fn(board):
         val = min(val,
-                  -1 * alpha_beta_max_recurse(new_board, depth - 1, eval_fn, alpha, beta,
-                                         get_next_moves_fn, is_terminal_fn))
+                  -1 * alpha_beta_max_recurse(new_board, depth - 1, eval_fn, alpha,
+                                              beta,
+                                              get_next_moves_fn, is_terminal_fn))
 
         beta = min(val, beta)
 
@@ -197,15 +198,59 @@ def ab_iterative_player(board):
 # By providing a different function, you should be able to beat
 # simple-evaluate (or focused-evaluate) while searching to the same depth.
 
+CHAIN_VALUES = {
+        1: 1,
+        2: 100,
+        3: 400,
+        4: 1000,
+    }
+
+
+
 def better_evaluate(board):
-    raise NotImplementedError
+    if board.is_tie():
+        return 0
+
+    if board.is_win():
+        # As with basic_evaluate, winning must mean lost.
+        return -1000
+
+    current_chain = sorted( board.chain_cells(board.get_current_player_id()),
+                           key=lambda x: len(x), reverse=True)
+    other_chain = sorted(board.chain_cells(board.get_other_player_id()),
+                         key=lambda x: len(x), reverse=True)
+
+    return get_chain_score(current_chain[0], board) - get_chain_score(other_chain[0], board)
+
+def get_chain_score(chain, board):
+    if len(chain) == 4:
+        return CHAIN_VALUES[len(chain)]
+    if len(chain) < 2:
+        return 1
+
+    x_0, y_0 = chain[0]
+    x_1, y_1 = chain[1]
+    try:
+        left = CHAIN_VALUES[len(chain)] if not board.get_cell(x_0 - 2*x_1, y_0 - 2*y_1) else 0
+    except IndexError as e:
+        left = 0
+
+    x__1, y__1 = chain[-1]
+    x__2, y__2 = chain[-2]
+    try:
+        right = CHAIN_VALUES[len(chain)] if not board.get_cell(x__1 + (x__1 - x__2), y__1 + (y__1 - y__2)) else 0
+    except IndexError as e:
+        right = 0
+
+    return (CHAIN_VALUES[len(chain)] + left + right)/3
 
 
 # Comment this line after you've fully implemented better_evaluate
-better_evaluate = memoize(basic_evaluate)
+# better_evaluate = memoize(basic_evaluate)
+
 
 # Uncomment this line to make your better_evaluate run faster.
-# better_evaluate = memoize(better_evaluate)
+better_evaluate = memoize(better_evaluate)
 
 
 # A player that uses alpha-beta and better_evaluate:
