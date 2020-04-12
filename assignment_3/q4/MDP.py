@@ -64,9 +64,9 @@ def run_value_iteration(p_s=0.1, p_r=0.1):
     v_t[0] = max(s1_a, s1_b)
     v_t[1:] = r[1:] + discount * np.sum(transition_a[1:] * v_t1)
     policy = "a" if s1_a > s1_b else "b"
-
+    i = 0
     while np.max(np.abs(v_t - v_t1)) > epsilon:
-        print(f"{np.max(np.abs(v_t - v_t1))} <= {epsilon}")
+        # print(f"{np.max(np.abs(v_t - v_t1))} <= {epsilon}")
         v_t1 = v_t.copy()
         # compute new v_t for each state.
         s1_a = r[0] + np.sum(discount * transition_a[0] * v_t1)
@@ -81,21 +81,34 @@ def run_value_iteration(p_s=0.1, p_r=0.1):
         v_t[0] = max(s1_a, s1_b)
         v_t[1:] = r[1:] + np.sum(discount * transition_a[1:] * v_t1, axis=1)
 
-    print(f"{np.max(np.abs(v_t - v_t1))} <= {epsilon}")
-    print(f"Policy is to select: {policy} at S1.")
+        print(f"V^{{{i}}}={v_t} \\\\")
+        i+=1
+    print(f"${np.max(np.abs(v_t - v_t1))} \leq {epsilon}$ \\\\")
+    print(f"Policy is to select {policy} at S1.\\\\")
+    print("\\\\")
     return policy
 
 def main():
-    # policy = run_value_iteration(p_s=0.2, p_r=0.01)
-    # policy2= run_value_iteration(p_s=0.2, p_r=0.03)
-    # policy3 = run_value_iteration(p_s=0.2, p_r=0.018985)
-    #
+    print(f"MDP: p_s={0.2}, p_r={0.01} \\\\")
+    policy = run_value_iteration(p_s=0.2, p_r=0.01)
+
+    print(f"MDP: p_s={0.2}, p_r={0.03} \\\\")
+    policy2= run_value_iteration(p_s=0.2, p_r=0.03)
+
+    print(f"MDP: p_s={0.2}, p_r={0.018985} \\\\")
+    policy3 = run_value_iteration(p_s=0.2, p_r=0.018985)
+
     # print(f"Policies: {policy}, {policy3}, {policy2}")
 
+    print(f"MDP: p_s={0.6}, p_r={0.1} \\\\")
     policy = run_value_iteration(p_s=0.6, p_r=0.1)
+
+    print(f"MDP: p_s={0.6}, p_r={0.2} \\\\")
     policy2= run_value_iteration(p_s=0.6, p_r=0.2)
-    policy3 = run_value_iteration(p_s=0.6, p_r=0.13762 )
-    print(f"Policies: {policy}, {policy3}, {policy2}")
+
+    print(f"MDP: p_s={0.6}, p_r={0.13762} \\\\")
+    policy3 = run_value_iteration(p_s=0.6, p_r=0.13762)
+    # print(f"Policies: {policy}, {policy3}, {policy2}")
 
 if __name__ == "__main__":
     main()
